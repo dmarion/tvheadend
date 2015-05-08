@@ -161,6 +161,13 @@ const idclass_t linuxdvb_ca_class =
       .notify   = linuxdvb_ca_class_high_bitrate_notify,
     },
     {
+      .type     = PT_INT,
+      .id       = "max_programs",
+      .name     = "Maximum Number of Simultaneous Programs",
+      .off      = offsetof(linuxdvb_ca_t, lca_max_programs),
+      .def.i    = 1,
+    },
+    {
       .type     = PT_BOOL,
       .id       = "pin_reply",
       .name     = "Reply to CAM PIN Enquiries",
@@ -427,7 +434,7 @@ linuxdvb_ca_ca_info_callback(void *arg, uint8_t slot_id, uint16_t session_num,
     size_t c = 0;
 
     dvbcam_unregister_cam(lca, 0);
-    dvbcam_register_cam(lca, 0, ca_ids, ca_id_count);
+    dvbcam_register_cam(lca, 0, ca_ids, ca_id_count, lca->lca_max_programs);
 
 
     for(i=0; i< ca_id_count; i++) {
@@ -739,7 +746,8 @@ linuxdvb_ca_create
 }
 
 void
-linuxdvb_ca_send_capmt(linuxdvb_ca_t *lca, uint8_t slot, const uint8_t *ptr, int len)
+linuxdvb_ca_send_capmt(linuxdvb_ca_t *lca, uint8_t slot, const uint8_t *ptr,
+                       int len, uint8_t list_mgmt, uint8_t cmd_id)
 {
   struct section *section;
   struct section_ext *result;
@@ -772,9 +780,8 @@ linuxdvb_ca_send_capmt(linuxdvb_ca_t *lca, uint8_t slot, const uint8_t *ptr, int
     goto fail;
   }
 
-  size = en50221_ca_format_pmt(pmt, capmt, sizeof(capmt), 1,
-                               CA_LIST_MANAGEMENT_ONLY,
-                               CA_PMT_CMD_ID_OK_DESCRAMBLING);
+  size = en50221_ca_format_pmt(pmt, capmt, sizeof(capmt), 0,
+                               list_mgmt, cmd_id);
 
   if (size < 0) {
     tvherror("en50221", "Failed to format CAPMT");

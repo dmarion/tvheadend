@@ -203,6 +203,7 @@ struct linuxdvb_ca
    * CAM module info
    */
   char                     lca_cam_menu_string[64];
+  int                      lca_max_programs;
   int                      lca_pin_reply;
   char                    *lca_pin_str;
   char                    *lca_pin_match_str;
@@ -374,7 +375,8 @@ linuxdvb_ca_create
 void linuxdvb_ca_save( linuxdvb_ca_t *lca, htsmsg_t *m );
 
 void
-linuxdvb_ca_send_capmt(linuxdvb_ca_t *lca, uint8_t slot, const uint8_t *ptr, int len);
+linuxdvb_ca_send_capmt(linuxdvb_ca_t *lca, uint8_t slot, const uint8_t *ptr,
+                       int len, uint8_t list_mgmt, uint8_t cmd_id);
 
 #endif
 
