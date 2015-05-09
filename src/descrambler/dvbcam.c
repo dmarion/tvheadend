@@ -172,8 +172,8 @@ dvbcam_pmt_data(mpegts_service_t *s, const uint8_t *ptr, int len)
 
   /*if this is update just send updated CAPMT to CAM */
   if (is_update) {
-    linuxdvb_ca_send_capmt(as->ca, as->slot, as->last_pmt, as->last_pmt_len,
-                           CA_LIST_MANAGEMENT_UPDATE, CA_PMT_CMD_ID_OK_DESCRAMBLING);
+    linuxdvb_ca_enqueue_capmt(as->ca, as->slot, as->last_pmt, as->last_pmt_len,
+                              CA_LIST_MANAGEMENT_UPDATE, CA_PMT_CMD_ID_OK_DESCRAMBLING);
     tvhtrace("dvbcam", "CAPMT sent to CAM (update)");
     goto done;
   }
@@ -216,8 +216,9 @@ end_of_search_for_cam:
 
   if (num_programs == 1)
   {
-    linuxdvb_ca_send_capmt(as->ca, as->slot, as->last_pmt, as->last_pmt_len,
-                           CA_LIST_MANAGEMENT_ONLY,  CA_PMT_CMD_ID_OK_DESCRAMBLING);
+    linuxdvb_ca_enqueue_capmt(as->ca, as->slot, as->last_pmt, as->last_pmt_len,
+                              CA_LIST_MANAGEMENT_ONLY,
+                              CA_PMT_CMD_ID_OK_DESCRAMBLING);
     ac->active_programs = 1;
     ac->send_all = 0;
     tvhtrace("dvbcam", "CAPMT sent to CAM (only)");
@@ -226,8 +227,9 @@ end_of_search_for_cam:
   {
     /* this is addition, send only new CAPMT */
     if (num_programs <= ac->max_programs) {
-      linuxdvb_ca_send_capmt(as->ca, as->slot, as->last_pmt, as->last_pmt_len,
-                             CA_LIST_MANAGEMENT_ADD, CA_PMT_CMD_ID_OK_DESCRAMBLING);
+      linuxdvb_ca_enqueue_capmt(as->ca, as->slot, as->last_pmt, as->last_pmt_len,
+                                CA_LIST_MANAGEMENT_ADD,
+                                CA_PMT_CMD_ID_OK_DESCRAMBLING);
       ac->active_programs++;
       tvhtrace("dvbcam", "CAPMT sent to CAM (add)");
     }
@@ -255,8 +257,9 @@ end_of_search_for_cam:
           list_mgmt = CA_LIST_MANAGEMENT_MORE;
           list_mgmt_str = "more";
         }
-        linuxdvb_ca_send_capmt(as2->ca, as2->slot, as2->last_pmt,
-                               as2->last_pmt_len, list_mgmt, CA_PMT_CMD_ID_OK_DESCRAMBLING);
+        linuxdvb_ca_enqueue_capmt(as2->ca, as2->slot, as2->last_pmt,
+                                  as2->last_pmt_len, list_mgmt,
+                                  CA_PMT_CMD_ID_OK_DESCRAMBLING);
         i++;
 
         tvhtrace("dvbcam", "CAPMT sent to CAM (%s) %u / %u", list_mgmt_str, i,
@@ -343,8 +346,10 @@ dvbcam_service_stop(service_t *t)
     as_tmp = TAILQ_NEXT(as, link);
     if(as && as->t == t) {
       if(as->last_pmt) {
-        linuxdvb_ca_send_capmt(as->ca, as->slot, as->last_pmt,
-                             as->last_pmt_len, CA_LIST_MANAGEMENT_ADD, CA_PMT_CMD_ID_NOT_SELECTED);
+        linuxdvb_ca_enqueue_capmt(as->ca, as->slot, as->last_pmt,
+                                  as->last_pmt_len,
+                                  CA_LIST_MANAGEMENT_ADD,
+                                  CA_PMT_CMD_ID_NOT_SELECTED);
         free(as->last_pmt);
       }
       slot = as->slot;

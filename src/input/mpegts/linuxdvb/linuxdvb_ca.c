@@ -53,6 +53,15 @@ ca_slot_state2str(ca_slot_state_t v)
   return "UNKNOWN";
 }
 
+struct linuxdvb_ca_capmt {
+  TAILQ_ENTRY(linuxdvb_ca_capmt)  lcc_link;
+  int      len;
+  uint8_t *data;
+  uint8_t  slot;
+  uint8_t  list_mgmt;
+  uint8_t  cmd_id;
+};
+
 /*
  *  ts101699 and CI+ 1.3 definitions
  */
@@ -740,11 +749,54 @@ linuxdvb_ca_create
   lca->lca_adapter = la;
   LIST_INSERT_HEAD(&la->la_ca_devices, lca, lca_link);
 
+  TAILQ_INIT(&lca->lca_capmt_queue);
+  pthread_mutex_lock(&lca->lca_capmt_queue_lock);
+
   gtimer_arm_ms(&lca->lca_monitor_timer, linuxdvb_ca_monitor, lca, 250);
 
   return lca;
 }
 
+static void
+linuxdvb_ca_process_capmt_queue ( void *aux )
+{
+  linuxdvb_ca_t *lca = aux;
+  linuxdvb_ca_capmt_t *lcc;
+
+  lcc = TAILQ_FIRST(&lca->lca_capmt_queue);
+
+  printf("slot %u cmd_id %u list_mgmt %u\n", lcc->slot, lcc->cmd_id, lcc->list_mgmt);
+
+  TAILQ_REMOVE(&lca->lca_capmt_queue, lcc, lcc_link);
+
+}
+
+void
+linuxdvb_ca_enqueue_capmt(linuxdvb_ca_t *lca, uint8_t slot, const uint8_t *ptr,
+                          int len, uint8_t list_mgmt, uint8_t cmd_id)
+{
+  linuxdvb_ca_capmt_t *capmt;
+
+  capmt = calloc(1, sizeof(*capmt));
+
+  if (!capmt)
+    return;
+
+  capmt->data = malloc(len);
+  capmt->len = len;
+  capmt->slot = slot;
+  capmt->list_mgmt = list_mgmt;
+  capmt->cmd_id = cmd_id;
+  memcpy(capmt->data, ptr, len);
+
+  pthread_mutex_lock(&lca->lca_capmt_queue_lock);
+  TAILQ_INSERT_TAIL(&lca->lca_capmt_queue, capmt, lcc_link);
+  pthread_mutex_unlock(&lca->lca_capmt_queue_lock);
+
+  gtimer_arm_ms(&lca->lca_capmt_queue_timer, linuxdvb_ca_process_capmt_queue, lca, 50);
+}
+
+#if 0
 void
 linuxdvb_ca_send_capmt(linuxdvb_ca_t *lca, uint8_t slot, const uint8_t *ptr,
                        int len, uint8_t list_mgmt, uint8_t cmd_id)
@@ -798,6 +850,7 @@ linuxdvb_ca_send_capmt(linuxdvb_ca_t *lca, uint8_t slot, const uint8_t *ptr,
 fail:
   free(buffer);
 }
+#endif
 
 void linuxdvb_ca_save( linuxdvb_ca_t *lca, htsmsg_t *msg )
 {
