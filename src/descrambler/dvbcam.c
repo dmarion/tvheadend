@@ -257,6 +257,11 @@ end_of_search_for_cam:
           list_mgmt = CA_LIST_MANAGEMENT_MORE;
           list_mgmt_str = "more";
         }
+
+        linuxdvb_ca_enqueue_capmt(as2->ca, as2->slot, as2->last_pmt,
+                                  as2->last_pmt_len, list_mgmt,
+                                  CA_PMT_CMD_ID_QUERY);
+
         linuxdvb_ca_enqueue_capmt(as2->ca, as2->slot, as2->last_pmt,
                                   as2->last_pmt_len, list_mgmt,
                                   CA_PMT_CMD_ID_OK_DESCRAMBLING);
