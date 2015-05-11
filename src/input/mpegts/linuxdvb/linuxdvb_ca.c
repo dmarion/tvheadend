@@ -196,13 +196,6 @@ const idclass_t linuxdvb_ca_class =
       .notify   = linuxdvb_ca_class_high_bitrate_notify,
     },
     {
-      .type     = PT_INT,
-      .id       = "max_programs",
-      .name     = "Maximum Number of Simultaneous Programs",
-      .off      = offsetof(linuxdvb_ca_t, lca_max_programs),
-      .def.i    = 1,
-    },
-    {
       .type     = PT_BOOL,
       .id       = "pin_reply",
       .name     = "Reply to CAM PIN Enquiries",
@@ -469,7 +462,7 @@ linuxdvb_ca_ca_info_callback(void *arg, uint8_t slot_id, uint16_t session_num,
     size_t c = 0;
 
     dvbcam_unregister_cam(lca, 0);
-    dvbcam_register_cam(lca, 0, ca_ids, ca_id_count, lca->lca_max_programs);
+    dvbcam_register_cam(lca, 0, ca_ids, ca_id_count);
 
 
     for(i=0; i< ca_id_count; i++) {

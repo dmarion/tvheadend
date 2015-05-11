@@ -28,7 +28,7 @@ typedef struct linuxdvb_ca linuxdvb_ca_t;
 void dvbcam_init(void);
 void dvbcam_service_start(struct service *t);
 void dvbcam_service_stop(struct service *t);
-void dvbcam_register_cam(linuxdvb_ca_t * lca, uint8_t slot, uint16_t * caids, int num_caids, int max_programs);
+void dvbcam_register_cam(linuxdvb_ca_t * lca, uint8_t slot, uint16_t * caids, int num_caids);
 void dvbcam_unregister_cam(linuxdvb_ca_t * lca, uint8_t slot);
 void dvbcam_pmt_data(mpegts_service_t *s, const uint8_t *ptr, int len);
 

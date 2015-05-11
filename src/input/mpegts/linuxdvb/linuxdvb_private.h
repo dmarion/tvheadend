@@ -210,7 +210,6 @@ struct linuxdvb_ca
    * CAM module info
    */
   char                     lca_cam_menu_string[64];
-  int                      lca_max_programs;
   int                      lca_pin_reply;
   char                    *lca_pin_str;
   char                    *lca_pin_match_str;
