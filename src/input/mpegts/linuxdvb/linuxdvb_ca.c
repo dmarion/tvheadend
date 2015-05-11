@@ -839,7 +839,7 @@ done:
 
   if (!TAILQ_EMPTY(&lca->lca_capmt_queue)) {
     gtimer_arm_ms(&lca->lca_capmt_queue_timer,
-                  linuxdvb_ca_process_capmt_queue, lca, 500);
+                  linuxdvb_ca_process_capmt_queue, lca, 1000);
   }
 }
 
