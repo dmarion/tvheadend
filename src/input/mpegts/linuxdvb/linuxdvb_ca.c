@@ -267,7 +267,46 @@ resource_ids[] = { EN50221_APP_RM_RESOURCEID,
                    EN50221_APP_DATETIME_RESOURCEID,
                    EN50221_APP_AI_RESOURCEID,
                    TS101699_APP_AI_RESOURCEID,
+                   CIPLUS_APP_CC_RESOURCEID,
                    CIPLUS13_APP_AI_RESOURCEID};
+
+static int
+ciplus_app_cc_message(void *arg, uint8_t slot_id, uint16_t session_num,
+                      uint32_t resource_id, uint8_t *data, uint32_t data_length)
+{
+  linuxdvb_ca_t * lca = (linuxdvb_ca_t *) arg;
+  uint32_t tag;
+  uint8_t len;
+
+  uint8_t * send_data;
+  int send_len = 0;
+
+  tag = data[0] << 16 |  data[1] << 8 | data[2];
+  len = data[3];
+
+  tvhtrace("en50221", "ciplus cc msg slot_id %u, session_num %u, rid %x tag %x",
+           slot_id, session_num, resource_id, tag);
+  tvhlog_hexdump("en50221", data, data_length);
+
+  switch (tag) {
+    case CIPLUS_TAG_CC_OPEN_REQ:
+      ciplus_generate_cc_open_cnf(lca->lca_ciplus_ctx, &send_data, &send_len);
+      break;
+    case CIPLUS_TAG_CC_DATA_REQ:
+      ciplus_generate_cc_data_cnf(lca->lca_ciplus_ctx, data, &send_data, &send_len);
+      break;
+    default:
+      tvhtrace("en50221", "unknown cc tag %x len %u", tag, len);
+  }
+
+  if (send_len) {
+    en50221_sl_send_data(lca->lca_sl, session_num, send_data, send_len);
+    tvhtrace("en50221", "sending ciplus cc cnf to session %u", session_num);
+    tvhlog_hexdump("en50221", send_data, send_len);
+    free(send_data);
+  }
+  return 0;
+}
 
 static int
 en50221_app_unknown_message(void *arg, uint8_t slot_id,
@@ -315,6 +354,11 @@ linuxdvb_ca_lookup_cb (void * arg, uint8_t slot_id, uint32_t requested_rid,
         *arg_out = lca->lca_mmi_resource;
         *connected_rid = EN50221_APP_MMI_RESOURCEID;
         break;
+      case CIPLUS_APP_CC_RESOURCEID:
+        *callback_out = (en50221_sl_resource_callback) ciplus_app_cc_message;
+        *arg_out = lca;
+        *connected_rid = CIPLUS_APP_CC_RESOURCEID;
+        break;
       default:
         tvhtrace("en50221", "lookup cb for unknown resource id %x on slot %u",
                  requested_rid, slot_id);
@@ -359,6 +403,9 @@ linuxdvb_ca_session_cb (void *arg, int reason, uint8_t slot_id,
       case EN50221_APP_MMI_RESOURCEID:
       case EN50221_APP_DATETIME_RESOURCEID:
         break;
+      case CIPLUS_APP_CC_RESOURCEID:
+       // ciplus_ctx_init(&lca->lca_ciplus_ctx);
+        break;
       default:
         tvhtrace("en50221", "session %u with unknown rid 0x%08x is connected",
                  session_num, rid);
@@ -372,6 +419,9 @@ linuxdvb_ca_session_cb (void *arg, int reason, uint8_t slot_id,
       case EN50221_APP_CA_RESOURCEID:
         dvbcam_unregister_cam(lca, 0);
         lca->lca_cam_menu_string[0] = 0;
+        break;
+      case CIPLUS_APP_CC_RESOURCEID:
+        ciplus_ctx_destroy(&lca->lca_ciplus_ctx);
     }
     return 0;
   }
@@ -794,6 +844,8 @@ linuxdvb_ca_create
   LIST_INSERT_HEAD(&la->la_ca_devices, lca, lca_link);
 
   TAILQ_INIT(&lca->lca_capmt_queue);
+
+  ciplus_ctx_init(&lca->lca_ciplus_ctx);
 
   gtimer_arm_ms(&lca->lca_monitor_timer, linuxdvb_ca_monitor, lca, 250);
 

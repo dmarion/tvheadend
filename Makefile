@@ -341,6 +341,7 @@ SRCS-${CONFIG_CONSTCW} += \
 # DVB CAM
 SRCS-${CONFIG_LINUXDVB_CA} += \
 	src/input/mpegts/linuxdvb/linuxdvb_ca.c \
+	src/input/mpegts/ciplus.c \
 	src/descrambler/dvbcam.c
 
 # TSDEBUGCW

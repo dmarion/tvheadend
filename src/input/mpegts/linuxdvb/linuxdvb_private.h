@@ -40,6 +40,7 @@
 #include <libdvben50221/en50221_app_auth.h>
 #include <libdvben50221/en50221_app_lowspeed.h>
 #include <libdvbapi/dvbca.h>
+#include "input/mpegts/ciplus.h"
 #endif
 #endif
 
@@ -198,6 +199,7 @@ struct linuxdvb_ca
   int                                lca_ai_version;
   uint16_t                           lca_ai_session_number;
   uint16_t                           lca_ca_session_number;
+  ciplus_ctx_t                       lca_ciplus_ctx;
 
   /*
    * CA info
