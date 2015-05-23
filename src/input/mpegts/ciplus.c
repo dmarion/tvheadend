@@ -42,6 +42,7 @@ ciplus_ctx_init(ciplus_ctx_t * ctx_ptr)
 {
   ciplus_ctx_t ctx;
   ctx = calloc(1, sizeof(struct ciplus_ctx));
+  FILE *f;
 
   if (!ctx)
     return;
@@ -55,6 +56,29 @@ ciplus_ctx_init(ciplus_ctx_t * ctx_ptr)
     tvhtrace("ciplus", "failed to load root certificate");
     return;
   }
+
+  f = fopen("device.pem", "r");
+  if (!f) {
+    tvhtrace("ciplus", "failed to open device certificate");
+    return;
+  }
+
+  ctx->host_device_cert = PEM_read_X509(f, NULL, NULL, NULL);
+
+  if (!ctx->host_device_cert) {
+    tvhtrace("ciplus", "failed to load device certificate");
+    return;
+  }
+
+  unsigned char *cert_der = NULL;
+  int cert_len;
+  cert_len = i2d_X509(ctx->host_device_cert, &cert_der);
+
+  if (cert_len<1) {
+    tvhtrace("ciplus", "failed to get cert in DER format");
+    return;
+  }
+  tvhlog_hexdump("ciplus", cert_der, cert_len);
 
   tvhtrace("ciplus", "context init");
 
