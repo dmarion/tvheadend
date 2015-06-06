@@ -170,7 +170,8 @@ SRCS =  src/version.c \
 	src/lock.c
 
 SRCS-${CONFIG_UPNP} += \
-	src/upnp.c
+	src/upnp.c \
+        src/upnp_mediaserver.c
 
 # SATIP Server
 SRCS-${CONFIG_SATIP_SERVER} += \

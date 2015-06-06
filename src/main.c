@@ -42,6 +42,7 @@
 #include "access.h"
 #include "http.h"
 #include "upnp.h"
+#include "upnp_mediaserver.h"
 #include "webui/webui.h"
 #include "epggrab.h"
 #include "spawn.h"
@@ -1020,6 +1021,7 @@ main(int argc, char **argv)
   webui_init(opt_xspf);
 #if ENABLE_UPNP
   upnp_server_init(opt_bindaddr);
+  upnp_mediaserver_init();
 #endif
 
   service_mapper_init();
@@ -1077,6 +1079,7 @@ main(int argc, char **argv)
 #endif
 #if ENABLE_UPNP
   tvhftrace("main", upnp_server_done);
+  tvhftrace("main", upnp_mediaserver_done);
 #endif
   tvhftrace("main", satip_server_done);
   tvhftrace("main", htsp_done);
