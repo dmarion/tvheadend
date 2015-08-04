@@ -59,7 +59,7 @@ FFMPEG_TB       = $(FFMPEG).tar.bz2
 FFMPEG_URL      = http://ffmpeg.org/releases/$(FFMPEG_TB)
 FFMPEG_SHA1     = a3307d20f97e8b75a113712e0258ab11d548d280
 
-EXTLIBS         = libx264 libvorbis libvpx
+EXTLIBS         = libx264 libx265 libvorbis libvpx
 COMPONENTS      = avutil avformat avcodec swresample swscale avresample
 PROTOCOLS       = file
 DECODERS        = mpeg2video mp2 ac3 eac3 h264 h264_vdpau aac aac_latm vorbis libvorbis
@@ -81,6 +81,11 @@ LIBX264         = x264-snapshot-20141218-2245
 LIBX264_TB      = $(LIBX264).tar.bz2
 LIBX264_URL     = http://ftp.via.ecp.fr/pub/videolan/x264/snapshots/$(LIBX264_TB)
 LIBX264_SHA1    = 24a3b20e2c49a112e40df9f64885cbd81250298a
+
+LIBX265         = x265_1.7
+LIBX265_TB      = $(LIBX265).tar.gz
+LIBX265_URL     = http://get.videolan.org/x265/$(LIBX265_TB)
+LIBX265_SHA1    = ee078ffe6858d17a25a268b69a1c651ef3b63945
 
 LIBVPX          = libvpx-1.4.0
 LIBVPX_TB       = $(LIBVPX).tar.bz2
@@ -194,6 +199,26 @@ $(LIBAVDIR)/$(LIBX264)/.tvh_build: \
 endif
 
 #
+# libx265
+#
+
+$(LIBAVDIR)/$(LIBX265)/.tvh_download:
+	$(call DOWNLOAD,$(LIBX265_URL),$(LIBAVDIR)/$(LIBX265_TB),$(LIBX265_SHA1))
+	$(call UNTAR,$(LIBX265_TB),x)
+	@touch $@
+
+$(LIBAVDIR)/$(LIBX265)/.tvh_build: \
+		$(LIBAVDIR)/$(LIBX265)/.tvh_download \
+		$(LIBAVDIR)/$(YASM)/.tvh_build
+	cd $(LIBAVDIR)/$(LIBX265)/source && cmake \
+		-DCMAKE_INSTALL_PREFIX:PATH=$(LIBAVDIR)/build/ffmpeg \
+		-DENABLE_CLI:BOOL=no \
+		-DENABLE_SHARED:BOOL=no \
+		.
+	$(MAKE) -C $(LIBAVDIR)/$(LIBX265)/source install
+	@touch $@
+
+#
 # libvpx (VP8)
 #
 
@@ -228,6 +253,7 @@ $(LIBAVDIR)/$(FFMPEG)/.tvh_build: \
 		$(LIBAVDIR)/$(YASM)/.tvh_build \
 		$(LIBAVDIR)/$(LIBVORBIS)/.tvh_build \
 		$(LIBAVDIR)/$(LIBX264)/.tvh_build \
+		$(LIBAVDIR)/$(LIBX265)/.tvh_build \
 		$(LIBAVDIR)/$(LIBVPX)/.tvh_build \
 		$(LIBAVDIR)/$(FFMPEG)/.tvh_download
 	cd $(LIBAVDIR)/$(FFMPEG) && $(CONFIGURE) \
