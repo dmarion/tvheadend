@@ -264,6 +264,7 @@ $(LIBAVDIR)/$(FFMPEG)/.tvh_build: \
 		--enable-gpl \
 		--extra-cflags="$(ECFLAGS)" \
 		--extra-libs="$(ELIBS)" \
+		--pkg-config-flags="--static" \
 		$(foreach extlib,$(EXTLIBS),--enable-$(extlib)) \
 		$(foreach component,$(COMPONENTS),--enable-$(component)) \
 		$(foreach protocol,$(PROTOCOLS),--enable-protocol=$(protocol)) \
